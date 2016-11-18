@@ -6,7 +6,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const exphbs = require('express3-handlebars');
-var scrape = require('./lib/scrape.js');
+const scrape = require('./lib/scrape.js');
 const app = express();
 
 // tell express which template engine to use
@@ -28,7 +28,10 @@ app.listen(app.get('port'), () => {
 });
 
 app.post('/', (req, res) => {
-    var input = req.body.userUrl;
+    let input = req.body.userUrl;
     console.log(input);
-    scrape.extractLinks(new Array(input));
+    scrape.extractHomeLinks(input).then(function (linksArray) {
+        return scrape.extractCalendar(linksArray[0]);
+    });
+
 });
