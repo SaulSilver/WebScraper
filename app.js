@@ -30,8 +30,14 @@ app.listen(app.get('port'), () => {
 app.post('/', (req, res) => {
     let input = req.body.userUrl;
     console.log(input);
-    scrape.extractHomeLinks(input).then(function (linksArray) {
+    let whatdoiget = scrape.extractHomeLinks(input).then(function (linksArray) {
         return scrape.extractCalendar(linksArray[0]);
+    }).then(function (peopleArray) {
+        return scrape.readDays(peopleArray);
+    }).then(function (availableDays) {
+        if (availableDays.length === 0)
+        //TODO: check if there are no days available then send a message to the user about that
+            alert('No days are available');
+        console.log(availableDays);
     });
-
 });
