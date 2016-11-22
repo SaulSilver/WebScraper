@@ -9,6 +9,10 @@ const exphbs = require('express3-handlebars');
 const scrape = require('./lib/scrape.js');
 const app = express();
 
+let homeLinksArray = [];        //An array that holds the main links
+let freeDays = [];
+let movies = [];
+
 // tell express which template engine to use
 app.engine('handlebars', exphbs({ defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
@@ -29,15 +33,29 @@ app.listen(app.get('port'), () => {
 
 app.post('/', (req, res) => {
     let input = req.body.userUrl;
-    console.log(input);
-    let whatdoiget = scrape.extractHomeLinks(input).then(function (linksArray) {
-        return scrape.extractCalendar(linksArray[0]);
-    }).then(function (peopleArray) {
-        return scrape.readDays(peopleArray);
-    }).then(function (availableDays) {
-        if (availableDays.length === 0)
-        //TODO: check if there are no days available then send a message to the user about that
-            alert('No days are available');
-        console.log(availableDays);
-    });
+
+    let whatdoiget = scrape.extractHomeLinks(input)
+        .then(function (linksArray) {
+            homeLinksArray = linksArray;
+            return scrape.extractCalendar(linksArray[0]);
+        })
+        .then(function (peopleArray) {
+            return scrape.readDays(peopleArray);
+        })
+        .then(function (availableDays) {
+            if (availableDays.length === 0)
+            //TODO: check if there are no days available then send a message to the user about that
+                alert('No days are available');
+            freeDays = availableDays;
+            return scrape.openCinemaPage(homeLinksArray[1])
+        })
+        .then(function (moviesList) {
+            return scrape.checkMovie(freeDays, moviesList);
+        })
+        .then(function (availableMovies) {
+            movies = availableMovies;
+            movies.forEach(object => {
+               console.log(object)
+            });
+        });
 });
