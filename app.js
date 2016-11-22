@@ -7,6 +7,9 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const exphbs = require('express3-handlebars');
 const scrape = require('./lib/scrape.js');
+const cookieSession = require('cookie-session');
+const cookieParser = require('cookie-parser');
+
 const app = express();
 
 let homeLinksArray = [];        //An array that holds the main links
@@ -55,7 +58,12 @@ app.post('/', (req, res) => {
         .then(function (availableMovies) {
             movies = availableMovies;
             movies.forEach(object => {
-               console.log(object)
+               //console.log(object)
             });
+            return scrape.getRestaurantLogin(homeLinksArray[2]);
+        })
+        .then(function (loginLink) {
+            console.log(loginLink);
+            return scrape.restaurantLogin(loginLink, movies);
         });
 });
