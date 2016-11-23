@@ -7,8 +7,6 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const exphbs = require('express3-handlebars');
 const scrape = require('./lib/scrape.js');
-const cookieSession = require('cookie-session');
-const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -37,33 +35,32 @@ app.listen(app.get('port'), () => {
 app.post('/', (req, res) => {
     let input = req.body.userUrl;
 
-    let whatdoiget = scrape.extractHomeLinks(input)
-        .then(function (linksArray) {
+    scrape.extractHomeLinks(input)              //Get the links from home page
+        .then(function (linksArray) {            //Get the list of people in the /calendar page
             homeLinksArray = linksArray;
             return scrape.extractCalendar(linksArray[0]);
         })
-        .then(function (peopleArray) {
+        .then(function (peopleArray) {          //Check the available days for each person
             return scrape.readDays(peopleArray);
         })
-        .then(function (availableDays) {
+        .then(function (availableDays) {                //Open the /cinema page and get the movies list
             if (availableDays.length === 0)
-            //TODO: check if there are no days available then send a message to the user about that
-                alert('No days are available');
+                console.log('No days are available');
             freeDays = availableDays;
             return scrape.openCinemaPage(homeLinksArray[1])
         })
-        .then(function (moviesList) {
+        .then(function (moviesList) {                       //Check which movies are available for the specific days
             return scrape.checkMovie(freeDays, moviesList);
         })
-        .then(function (availableMovies) {
+        .then(function (availableMovies) {          //Retrieve the restaurant login
             movies = availableMovies;
-            movies.forEach(object => {
-               //console.log(object)
-            });
             return scrape.getRestaurantLogin(homeLinksArray[2]);
         })
-        .then(function (loginLink) {
-            console.log(loginLink);
-            return scrape.restaurantLogin(loginLink, movies);
+        .then(function (loginLink) {                //Decide on which time to go to the restaurant (final suggestions are made here)
+            return scrape.restaurantLogin(loginLink, freeDays, movies);
+        }).then(function(suggestion) {
+        console.log(suggestion);})
+        .catch(function (err) {
+            console.error(err);
         });
 });
